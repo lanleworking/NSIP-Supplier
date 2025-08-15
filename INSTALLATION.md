@@ -66,9 +66,9 @@
 
 ## Thiết lập môi trường PRODUCTION
 
-Thiết lập file `.env` cho cả `SupplierFE` và `SupplierBE`
+-   Thiết lập file `.env` cho cả `SupplierFE` và `SupplierBE` y trên phần Development
 
-Di chuyển vào thư mục `/SupplierBE`
+-   Di chuyển vào thư mục `/SupplierBE`
 
 ```bash
 cd SupplierBE
