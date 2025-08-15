@@ -1,0 +1,16 @@
+@keyframes ScaleInAndOut {
+  0% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.loader {
+  background-color: #8080801f;
+}
+
+.loaderLogo {
+  animation: ScaleInAndOut 2s ease-in-out infinite alternate;
+}

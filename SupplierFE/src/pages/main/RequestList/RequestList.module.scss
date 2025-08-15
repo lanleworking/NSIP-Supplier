@@ -1,0 +1,17 @@
+.container {
+  position: relative;
+}
+
+.pagination {
+  background-color: white;
+  position: sticky;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-color);
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+
+.tableRow {
+  cursor: pointer;
+}

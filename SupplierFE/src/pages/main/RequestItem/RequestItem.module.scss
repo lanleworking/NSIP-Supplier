@@ -1,0 +1,16 @@
+.stickyCol {
+  position: sticky;
+  background: white;
+  z-index: 2;
+}
+
+.editCol {
+  left: 0;
+  width: 50px;
+  min-width: 50px;
+}
+
+.itemCodeCol {
+  left: 50px;
+  min-width: 50px;
+}
