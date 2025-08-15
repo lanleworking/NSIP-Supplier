@@ -8,8 +8,8 @@
 ## NHỮNG THƯ VIỆN ĐƯỢC SỬ DỤNG
 
 -   [Vite - ReactJS](https://vite.dev/guide/): Framework Javascript cho lập trình website
--   [Mantine.dev](mantine.dev): Thư viện đa dạng hooks và components hỗ trợ validate form, triển khai UI dễ dàng và nhanh chóng (Dùng nhiều nhất)
--   [Ant.design](ant.design): Thư viện với nhiều components đẹp, đa dạng, cải thiện trải nghiệm người dùng (chỉ dùng khi Mantine không có component hỗ trợ)
+-   [Mantine.dev](https://mantine.dev/): Thư viện đa dạng hooks và components hỗ trợ validate form, triển khai UI dễ dàng và nhanh chóng (Dùng nhiều nhất)
+-   [Ant.design](https://ant.design/): Thư viện với nhiều components đẹp, đa dạng, cải thiện trải nghiệm người dùng (chỉ dùng khi Mantine không có component hỗ trợ)
 -   [@tanstack-query](https://tanstack.com/router/latest/docs/framework/react/routing/routing-concepts): Quản lý Router cho dự án
 
 ## CẤU TRÚC THƯ MỤC
