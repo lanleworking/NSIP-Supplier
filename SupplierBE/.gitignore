@@ -44,4 +44,4 @@ package-lock.json
 
 FEBuild
 
-public
+/public/*
