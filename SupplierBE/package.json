@@ -4,8 +4,8 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "dev": "bun run --watch src/index.ts",
-        "start": "concurrently \"bun run src/index.ts\" \"serve -s FEBuild\"",
-        "build:fe": "cd ../SupplierFE && bun run build",
+        "start": "bun i && concurrently \"bun run src/index.ts\" \"serve -s FEBuild\"",
+        "build:fe": "cd ../SupplierFE && bun i && bun run build",
         "env": "cp .env.example .env && echo 'Environment variables copied from .env.example to .env'"
     },
     "dependencies": {
