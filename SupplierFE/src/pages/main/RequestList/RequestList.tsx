@@ -23,9 +23,11 @@ import styles from './RequestList.module.scss'
 import step from '@/assets/step/step.png'
 
 import { AiOutlineNumber } from 'react-icons/ai'
+import { MdOutlinePriceCheck } from 'react-icons/md'
 import { IoText } from 'react-icons/io5'
 import clsx from 'clsx'
 import PieChartJS from '@/components/Chart/PieChart'
+import { GrStatusGood } from 'react-icons/gr'
 
 type RequestListProps = {
   chartData?: any[]
@@ -118,7 +120,7 @@ function RequestList({ chartData }: RequestListProps) {
           <Select
             clearable
             placeholder="Trạng thái gửi"
-            leftSection={<IoText />}
+            leftSection={<MdOutlinePriceCheck />}
             data={[
               {
                 value: 'false',
@@ -142,7 +144,7 @@ function RequestList({ chartData }: RequestListProps) {
           <Select
             clearable
             placeholder="Trạng thái duyệt"
-            leftSection={<IoText />}
+            leftSection={<GrStatusGood />}
             data={[
               {
                 value: '0',
@@ -256,7 +258,7 @@ function RequestList({ chartData }: RequestListProps) {
         </Flex>
       )}
 
-      {chartData && (
+      {chartData && !isFetching && (
         <Stack>
           <Divider />
           <Title order={3}>Biểu đồ tổng quan yêu cầu</Title>
@@ -286,7 +288,6 @@ function RequestList({ chartData }: RequestListProps) {
                     }}
                   />
                 </Box>
-                {/* {!isMobile && ( */}
                 <Image
                   style={{
                     maxWidth: '800px',
@@ -294,7 +295,6 @@ function RequestList({ chartData }: RequestListProps) {
                   src={step}
                   alt="stepper"
                 />
-                {/* )} */}
               </Flex>
             </Stack>
           </Center>

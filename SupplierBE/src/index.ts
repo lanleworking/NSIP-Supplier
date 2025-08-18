@@ -18,9 +18,12 @@ await AppDataSourceGlobal.initialize()
         process.exit(1);
     });
 
+    const allowOrigins = ["http://192.168.1.178:3000","http://172.22.80.1:3000"];
+
 const app = new Elysia().use(staticPlugin()).use(
     cors({
-        origin: process.env.FRONTEND_URL,
+        origin: allowOrigins,
+        credentials: true,
     }),
 );
 

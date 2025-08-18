@@ -57,8 +57,11 @@ const sanitizeSupplierData = (supplier: Supplier) => {
     return restData;
 };
 
-const setTokenCookie = (set: any, token: string, maxAge: number, sameSite: 'Strict' | 'Lax' = 'Strict') => {
-    set.headers['Set-Cookie'] = `token=${token}; Path=/; HttpOnly; Max-Age=${maxAge}; SameSite=${sameSite};`;
+const isProd = process.env.CODE_ENV === 'PRODUCTION';
+const setTokenCookie = (set: any, token: string, maxAge: number) => {
+    const sameSite = isProd ? 'None' : 'Lax';
+    const secure = isProd ? 'Secure;' : '';
+    set.headers['Set-Cookie'] = `token=${token}; Path=/; HttpOnly; Max-Age=${maxAge}; SameSite=${sameSite}; ${secure}`;
 };
 
 export const login = async (payload: ILoginPayload, set: any, jwt: JWTService) => {
@@ -102,13 +105,21 @@ export const login = async (payload: ILoginPayload, set: any, jwt: JWTService) =
     }
 
     const expiredTime = new Date(Date.now() + TOKEN_EXPIRY_SECONDS * 1000);
-    const token = await jwt.sign({
+    const tokenJwt = await jwt.sign({
         supplierID: supplier!.SupplierID,
         loginName: supplier!.LoginName,
         expiredTime,
     });
+    //   const expiresDate = new Date(Date.now() + TOKEN_EXPIRY_SECONDS * 1000)
+    // token.set({
+    //     path: "/",
+    //     value: tokenJwt,
+    //     httpOnly: true,
+    //     maxAge: TOKEN_EXPIRY_SECONDS * 1000,
+    //     sameSite: "lax"
+    // })
 
-    setTokenCookie(set, token, TOKEN_EXPIRY_SECONDS);
+    setTokenCookie(set, tokenJwt, TOKEN_EXPIRY_SECONDS);
 
     return sanitizeSupplierData(supplier!);
 };
@@ -155,7 +166,7 @@ export const register = async (payload: IRegisterPayload, set: any, jwt: JWTServ
         expiresIn,
     });
 
-    setTokenCookie(set, token, expiresIn, 'Lax');
+    setTokenCookie(set, token, expiresIn);
 
     return sanitizeSupplierData(savedSupplier);
 };
@@ -202,7 +213,7 @@ export const getLoggedUser = async (jwt: JWTService, set: any, token: Cookie<str
 };
 
 export const logOut = (set: any) => {
-    setTokenCookie(set, '', 0, 'Lax');
+    setTokenCookie(set, '', 0);
     return { message: 'Đăng xuất thành công' };
 };
 

@@ -1,8 +1,7 @@
 import { defineConfig } from 'vitest/config'
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import path from 'path'
-
+import fs from 'fs'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import { resolve } from 'node:path'
 
@@ -13,10 +12,10 @@ export default defineConfig({
     viteReact(),
     tailwindcss(),
   ],
-  build: {
-    outDir: path.resolve(__dirname, '../SupplierBE/FEBuild'),
-    emptyOutDir: true,
-  },
+  // build: {
+  //   outDir: path.resolve(__dirname, '../SupplierBE/FEBuild'),
+  //   emptyOutDir: true,
+  // },
   test: {
     globals: true,
     environment: 'jsdom',
@@ -27,6 +26,11 @@ export default defineConfig({
     },
   },
   server: {
-    host: '0.0.0.0',
+    https: {
+      key: fs.readFileSync('./172.22.80.1+2-key.pem'),
+      cert: fs.readFileSync('./172.22.80.1+2.pem'),
+    },
+    host: '172.22.80.1',
+    port: 3000,
   },
 })

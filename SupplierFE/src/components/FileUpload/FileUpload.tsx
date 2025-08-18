@@ -87,34 +87,36 @@ function FileUpload({
         <Table highlightOnHover>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Thao tác</Table.Th>
+              {!isDisabled && <Table.Th>Thao tác</Table.Th>}
               <Table.Th>Tên file</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {files?.map((file) => (
               <Table.Tr key={file.ID}>
-                <Table.Td>
-                  <Group>
-                    <ActionIcon
-                      component={Link}
-                      target="_blank"
-                      to={API_URL + file.filePath}
-                      variant="subtle"
-                      rel="noopener noreferrer"
-                      c={'blue'}
-                    >
-                      <MdOutlineRemoveRedEye />
-                    </ActionIcon>
-                    <ActionIcon
-                      onClick={() => handleClickDelete(file.ID)}
-                      variant="subtle"
-                      c={'red'}
-                    >
-                      <FaRegTrashAlt />
-                    </ActionIcon>
-                  </Group>
-                </Table.Td>
+                {!isDisabled && (
+                  <Table.Td>
+                    <Group>
+                      <ActionIcon
+                        component={Link}
+                        target="_blank"
+                        to={API_URL + file.filePath}
+                        variant="subtle"
+                        rel="noopener noreferrer"
+                        c={'blue'}
+                      >
+                        <MdOutlineRemoveRedEye />
+                      </ActionIcon>
+                      <ActionIcon
+                        onClick={() => handleClickDelete(file.ID)}
+                        variant="subtle"
+                        c={'red'}
+                      >
+                        <FaRegTrashAlt />
+                      </ActionIcon>
+                    </Group>
+                  </Table.Td>
+                )}
                 <Table.Td>
                   <a
                     style={{
