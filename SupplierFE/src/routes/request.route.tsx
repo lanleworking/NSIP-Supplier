@@ -1,3 +1,4 @@
+import { LazyComponent } from '@/components/LazyComponent'
 import MainLayout from '@/layouts/MainLayout/MainLayout'
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 
@@ -7,8 +8,10 @@ export const Route = createFileRoute('/request')({
 
 function RouteComponent() {
   return (
-    <MainLayout>
-      <Outlet />
-    </MainLayout>
+    <LazyComponent>
+      <MainLayout>
+        <Outlet />
+      </MainLayout>
+    </LazyComponent>
   )
 }

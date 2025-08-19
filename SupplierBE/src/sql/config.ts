@@ -9,7 +9,7 @@ export const AppDataSource = new DataSource({
     username: process.env.SQL_USERNAME,
     password: process.env.SQL_PASSWORD,
     database: process.env.SQL_DB,
-    synchronize: false,
+    synchronize: true,
     logging: false,
     entities: ['src/models/sync/*.ts', Request, Request_List],
     options: {

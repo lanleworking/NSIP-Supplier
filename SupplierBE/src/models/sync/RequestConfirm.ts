@@ -33,20 +33,20 @@ export class RequestConfirm {
      */
     @Column({
         type: 'int',
-        default: 0,
+        nullable: true,
     })
-    ApprovalStatus!: number;
+    ApprovalStatus?: number;
 
     @Column({
         type: 'datetime',
-        default: () => 'CURRENT_TIMESTAMP',
+        nullable: true,
     })
-    confirmAt!: Date;
+    confirmAt?: Date;
 
     @ManyToOne(() => Request_List, (request) => request.RequestConfirms)
     @JoinColumn({
         name: 'RequestId',
         referencedColumnName: 'ID',
     })
-    request?: Promise<Request>;
+    request?: Request;
 }

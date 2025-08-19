@@ -35,14 +35,21 @@ type RequestListProps = {
 
 function RequestList({ chartData }: RequestListProps) {
   const isMobile = useMediaQuery('(max-width: 768px)')
-  const navigate = useNavigate()
+  const navigate = useNavigate({ from: '/' })
   const search = useSearch({ from: '/' }) as RequestSearchParams
   const [requestFilter, setRequestFilter] = useState<RequestSearchParams>({
     current: search?.current || 1,
     limit: search?.limit || 10,
     requestId: search?.requestId,
     request: search?.request,
-    timeLimit: search?.timeLimit || 'desc',
+    // timeLimit: search?.timeLimit || 'desc',
+    isConfirmed:
+      search?.isConfirmed !== undefined
+        ? Number(search.isConfirmed)
+        : undefined,
+    approvalStatus: search?.approvalStatus
+      ? Number(search.approvalStatus)
+      : undefined,
   })
 
   // Debounced local filter input
@@ -67,7 +74,8 @@ function RequestList({ chartData }: RequestListProps) {
     }))
   }
 
-  const handleNavigateToRequest = (requestId: number) => {
+  const handleNavigateToRequest = (requestId?: number) => {
+    if (!requestId) return
     navigate({
       to: '/request/$requestId',
       params: {
@@ -85,6 +93,10 @@ function RequestList({ chartData }: RequestListProps) {
     }))
   }, [filterSearch])
 
+  useEffect(() => {
+    navigate({ search: requestFilter })
+  }, [requestFilter])
+
   return (
     <Stack className={clsx(styles.container)} p={20}>
       <Title order={2}>Danh sách Yêu cầu</Title>
@@ -95,6 +107,9 @@ function RequestList({ chartData }: RequestListProps) {
             placeholder="ID Yêu cầu"
             leftSection={<AiOutlineNumber />}
             hideControls
+            defaultValue={
+              search?.requestId ? Number(search.requestId) : undefined
+            }
             onChange={(value) =>
               setFilterSearch((prev) => ({
                 ...prev,
@@ -107,6 +122,7 @@ function RequestList({ chartData }: RequestListProps) {
           <TextInput
             placeholder="Yêu cầu"
             leftSection={<IoText />}
+            defaultValue={search?.request}
             onChange={(e) =>
               setFilterSearch((prev) => ({
                 ...prev,
@@ -119,6 +135,11 @@ function RequestList({ chartData }: RequestListProps) {
         <Grid.Col span={{ base: 6, sm: 3 }}>
           <Select
             clearable
+            defaultValue={
+              search?.isConfirmed !== undefined
+                ? String(Boolean(search.isConfirmed))
+                : undefined
+            }
             placeholder="Trạng thái gửi"
             leftSection={<MdOutlinePriceCheck />}
             data={[
@@ -143,6 +164,9 @@ function RequestList({ chartData }: RequestListProps) {
         <Grid.Col span={{ base: 6, sm: 3 }}>
           <Select
             clearable
+            defaultValue={
+              search?.approvalStatus ? String(search.approvalStatus) : undefined
+            }
             placeholder="Trạng thái duyệt"
             leftSection={<GrStatusGood />}
             data={[
@@ -188,28 +212,26 @@ function RequestList({ chartData }: RequestListProps) {
               {requests.map((r, index) => (
                 <Table.Tr
                   className={clsx(styles.tableRow)}
-                  onClick={() => handleNavigateToRequest(r.Id_Request)}
-                  key={`${r.Id_Request}-${index}`}
+                  onClick={() => handleNavigateToRequest(r.request?.Id_Request)}
+                  key={`${r.request?.Id_Request}-${index}`}
                 >
-                  <Table.Td>{r.Request}</Table.Td>
+                  <Table.Td>{r.request?.Request}</Table.Td>
                   <Table.Td w={110}>
-                    {r?.RequestConfirms?.[0]?.IsConfirmed ? (
+                    {r?.IsConfirmed ? (
                       <Badge color="green">Đã gửi</Badge>
                     ) : (
                       <Badge color={'gray'}>Chưa gửi</Badge>
                     )}
                   </Table.Td>
                   <Table.Td>
-                    {r?.TimeLimit
-                      ? dayjs(r.TimeLimit).format('HH:mm:ss DD/MM/YYYY')
+                    {r?.request?.TimeLimit
+                      ? dayjs(r.request.TimeLimit).format('HH:mm:ss DD/MM/YYYY')
                       : '-'}
                   </Table.Td>
 
                   <Table.Td w={120}>
-                    {r?.RequestConfirms?.[0]?.ApprovalStatus !== undefined &&
-                      APPROVAL_STATUS.hasOwnProperty(
-                        r?.RequestConfirms?.[0]?.ApprovalStatus,
-                      ) && (
+                    {r?.ApprovalStatus !== undefined &&
+                      APPROVAL_STATUS.hasOwnProperty(r?.ApprovalStatus) && (
                         <Badge
                           color={
                             (
@@ -217,8 +239,7 @@ function RequestList({ chartData }: RequestListProps) {
                                 number,
                                 { label: string; color: string }
                               >
-                            )[r?.RequestConfirms?.[0]?.ApprovalStatus]?.color ||
-                            'gray'
+                            )[r?.ApprovalStatus]?.color || 'gray'
                           }
                         >
                           {(
@@ -226,18 +247,15 @@ function RequestList({ chartData }: RequestListProps) {
                               number,
                               { label: string; color: string }
                             >
-                          )[r?.RequestConfirms?.[0]?.ApprovalStatus]?.label ||
-                            'Không xác định'}
+                          )[r?.ApprovalStatus]?.label || 'Không xác định'}
                         </Badge>
                       )}
                   </Table.Td>
                   <Table.Td>
-                    {r?.RequestConfirms?.[0]?.confirmAt &&
-                      dayjs(r?.RequestConfirms?.[0]?.confirmAt).format(
-                        'HH:mm:ss DD/MM/YYYY',
-                      )}
+                    {r?.confirmAt &&
+                      dayjs(r?.confirmAt).format('HH:mm:ss DD/MM/YYYY')}
                   </Table.Td>
-                  <Table.Td>{r.Id_Request}</Table.Td>
+                  <Table.Td>{r.request?.Id_Request}</Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>
@@ -265,7 +283,7 @@ function RequestList({ chartData }: RequestListProps) {
           <Center>
             <Stack>
               <Flex
-                direction={isMobile ? 'column-reverse' : 'row'}
+                direction={{ base: 'column-reverse', sm: 'row' }}
                 gap={{ base: 20, sm: 80 }}
                 align={'center'}
               >

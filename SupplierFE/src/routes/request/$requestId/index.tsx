@@ -1,3 +1,4 @@
+import { LazyComponent } from '@/components/LazyComponent'
 import { fetchAllPayment } from '@/libs/axios/fetchPayment'
 import { RequestItem } from '@/pages/main/RequestItem'
 import { createFileRoute, useLoaderData } from '@tanstack/react-router'
@@ -15,5 +16,9 @@ function RouteComponent() {
     from: '/request/$requestId/',
   })
 
-  return <RequestItem paymentList={data} />
+  return (
+    <LazyComponent>
+      <RequestItem paymentList={data} />
+    </LazyComponent>
+  )
 }

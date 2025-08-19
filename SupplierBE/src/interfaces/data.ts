@@ -8,3 +8,9 @@ export interface IChartData {
     value: number;
     color?: string;
 }
+
+export enum EApproveStatus {
+    PENDING = 0,
+    APPROVED = 1,
+    REJECTED = 8,
+}

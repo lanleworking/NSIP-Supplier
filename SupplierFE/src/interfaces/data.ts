@@ -64,9 +64,11 @@ export interface IRequestFile {
 }
 
 export interface IRequestConfirm {
+  ID: number
   IsConfirmed?: boolean
   confirmAt?: string
   ApprovalStatus?: number
+  request?: IRequestList
 }
 
 export interface IRequestList {
@@ -74,7 +76,6 @@ export interface IRequestList {
   Id_Request: number
   Request: string
   TimeLimit: string
-  RequestConfirms?: IRequestConfirm[]
 }
 
 export interface IOptions {

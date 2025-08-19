@@ -7,6 +7,7 @@ import { sendConfirmMail } from '../services/mailer.service';
 import { AppDataSourceGlobal } from '../sql/config';
 import { throwResponse } from '../utils/response';
 import type { Repository } from 'typeorm';
+import { EApproveStatus } from '../interfaces/data';
 
 interface ConfirmRequestResponse {
     message: string;
@@ -78,7 +79,7 @@ export const confirmRequest = async (requestId: number, supplierId: number): Pro
         }),
         supplierRepoInstance.findOne({
             where: { SupplierID: supplierId },
-            select: ['SupplierID', 'Email'],
+            select: ['SupplierID', 'Email', 'CompanyName'],
         }),
     ]);
 
@@ -94,6 +95,7 @@ export const confirmRequest = async (requestId: number, supplierId: number): Pro
         RequestId: request.ID,
         SupplierId: supplierId,
         IsConfirmed: true,
+        ApprovalStatus: EApproveStatus.PENDING,
         confirmAt: new Date(),
     };
 
@@ -107,7 +109,7 @@ export const confirmRequest = async (requestId: number, supplierId: number): Pro
         supplier.Email,
         requestId,
         supplier,
-        formatConfirmationDate(savedConfirm.confirmAt),
+        formatConfirmationDate(savedConfirm.confirmAt ?? new Date()),
     ).catch((error) => {
         console.error('Failed to send confirmation email:', error);
     });

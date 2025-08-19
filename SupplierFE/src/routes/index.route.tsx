@@ -1,3 +1,4 @@
+import { LazyComponent } from '@/components/LazyComponent'
 import MainLayout from '@/layouts/MainLayout/MainLayout'
 import { fetchRequestChart } from '@/libs/axios/fetchRequest'
 import { RequestList } from '@/pages/main/RequestList'
@@ -21,8 +22,10 @@ function RouteComponent() {
     document.title = 'Trang chủ - VasPort'
   }, [])
   return (
-    <MainLayout>
-      <RequestList chartData={data} />
-    </MainLayout>
+    <LazyComponent>
+      <MainLayout>
+        <RequestList chartData={data} />
+      </MainLayout>
+    </LazyComponent>
   )
 }

@@ -67,5 +67,5 @@ export class Request {
     Note?: string;
 
     @OneToMany(() => RequestItemPrice, (requestItemPrice) => requestItemPrice.requestItem)
-    prices?: Promise<RequestItemPrice[]>;
+    prices?: RequestItemPrice[];
 }

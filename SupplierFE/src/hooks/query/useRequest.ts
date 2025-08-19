@@ -2,15 +2,15 @@ import axiosClient from '@/config/axios'
 import type {
   IPage,
   IPageParams,
+  IRequestConfirm,
   IRequestFile,
   IRequestItem,
-  IRequestList,
   IRequestPrice,
 } from '@/interfaces/data'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
 export interface IRequestListQuery {
-  requests: IRequestList[]
+  requests: IRequestConfirm[]
   page: IPage
 }
 
@@ -29,6 +29,7 @@ export type RequestItemFilterType = {
 export type RequestSearchParams = IPageParams & RequestListFilter
 
 export interface IRequestItemListQuery {
+  confirmAt?: string
   data: IRequestItem[]
   files: IRequestFile[]
   isDisable?: boolean

@@ -1,5 +1,6 @@
 import { API_URL } from '@/constants/config'
 import axios, { type AxiosInstance } from 'axios'
+import { useLoadingStore } from '../stores/loadingStore'
 
 const axiosClient: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -9,8 +10,24 @@ const axiosClient: AxiosInstance = axios.create({
   },
 })
 
+// Add request interceptor
+axiosClient.interceptors.request.use(
+  (config) => {
+    useLoadingStore.getState().setIsLoading(true)
+    return config
+  },
+  (error) => {
+    useLoadingStore.getState().setIsLoading(false)
+    return Promise.reject(error)
+  },
+)
+
+// Add response interceptor
 axiosClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    useLoadingStore.getState().setIsLoading(false)
+    return response
+  },
   (error) => {
     const status = error.response?.status
     const code = error.response?.data?.CODE
@@ -20,6 +37,7 @@ axiosClient.interceptors.response.use(
       }
     }
 
+    useLoadingStore.getState().setIsLoading(false)
     return Promise.reject(error)
   },
 )

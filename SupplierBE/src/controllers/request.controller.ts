@@ -3,12 +3,12 @@ import { IRequestItemParams, IRequestListParams } from '../interfaces/params';
 import { Request } from '../models/default/Request';
 import { Request_List } from '../models/default/Request_List';
 import { AppDataSourceGlobal } from '../sql/config';
-import { searchWithCollate } from '../utils/collation';
 import { throwResponse } from '../utils/response';
 import { RequestFile } from '../models/sync/RequestFile';
 import { RequestConfirm } from '../models/sync/RequestConfirm';
 import type { Repository } from 'typeorm';
-import { IChartData } from '../interfaces/data';
+import { EApproveStatus, IChartData } from '../interfaces/data';
+import { COLLATION_RULE } from '../interfaces/sql';
 
 // Types for better type safety
 interface PageInfo {
@@ -31,6 +31,7 @@ interface FileInfo {
 
 interface RequestDetailResponse {
     isDisable: boolean;
+    confirmAt?: Date;
     data: Request[];
     files: FileInfo[];
 }
@@ -76,23 +77,27 @@ const getConfirmRepo = (): Repository<RequestConfirm> => {
 
 // Helper function to build confirmation condition
 const buildConfirmationCondition = (
-    isConfirmed?: boolean,
-    approvalStatus?: number,
+    options: {
+        isConfirmed?: boolean;
+        approvalStatus?: number;
+        requestId?: number;
+        search?: string;
+    },
     existingConditions: string[] = [],
 ): string[] | undefined => {
     const condition = [...existingConditions]; // keep old ones
 
-    if (isConfirmed !== undefined) {
-        const isConfirmedCondition = Boolean(Number(isConfirmed));
+    if (options?.isConfirmed !== undefined) {
+        const isConfirmedCondition = Boolean(Number(options.isConfirmed));
         if (isConfirmedCondition) {
             condition.push('Request_Confirm.IsConfirmed = 1');
         } else {
-            condition.push('(Request_Confirm.IsConfirmed IS NULL OR Request_Confirm.IsConfirmed = 0)');
+            condition.push('Request_Confirm.IsConfirmed = 0');
         }
     }
 
-    if (approvalStatus !== undefined) {
-        condition.push(`Request_Confirm.ApprovalStatus = '${approvalStatus}'`);
+    if (options?.approvalStatus !== undefined) {
+        condition.push(`Request_Confirm.ApprovalStatus = '${options.approvalStatus}'`);
     }
 
     return condition.length ? condition : undefined;
@@ -123,46 +128,51 @@ const sanitizeFileData = (files: RequestFile[]): FileInfo[] => {
     }));
 };
 
-export const getAllRequest = async (params: IRequestListParams, supplierID: number): Promise<RequestListResponse> => {
+export const getAllRequest = async (params: IRequestListParams, supplierID: number): Promise<any> => {
     const {
         current = DEFAULT_CURRENT_PAGE,
         limit = DEFAULT_PAGE_SIZE,
         timeLimit = 'DESC',
         requestId,
+        request,
         isConfirmed,
         approvalStatus,
     } = params || {};
 
     // Build confirmation condition efficiently
     let conditions: string[] = [];
-    conditions = buildConfirmationCondition(isConfirmed, undefined, conditions) || [];
-    conditions = buildConfirmationCondition(undefined, approvalStatus, conditions) || [];
-
-    const repo = getRequestRepo();
-    const [requests, total] = await searchWithCollate(
-        repo,
-        'Request_List',
-        {
-            Request: params?.request,
-            Id_Request: requestId,
-        },
-        {
-            orderBy: {
-                column: 'Id_Request',
-                direction: 'DESC',
+    conditions =
+        buildConfirmationCondition(
+            {
+                isConfirmed,
             },
-            limit,
-            page: current,
-            leftJoin: [
-                {
-                    relationName: 'RequestConfirms',
-                    tableAlias: 'Request_Confirm',
-                    condition: `Request_Confirm.SupplierId = ${supplierID}`,
-                    extraCondition: conditions?.length ? conditions : undefined,
-                },
-            ],
-        },
-    );
+            conditions,
+        ) || [];
+    conditions =
+        buildConfirmationCondition(
+            {
+                approvalStatus,
+            },
+            conditions,
+        ) || [];
+    if (request) {
+        conditions.push(`request.Request COLLATE ${COLLATION_RULE} LIKE '%${request}%'`);
+    }
+    if (requestId) {
+        conditions.push(`request.Id_Request LIKE '%${requestId}%'`);
+    }
+
+    const repo = getConfirmRepo();
+    const qb = await repo.createQueryBuilder('Request_Confirm');
+    qb.leftJoinAndSelect('Request_Confirm.request', 'request').where('Request_Confirm.SupplierId = :supplierID', {
+        supplierID,
+    });
+
+    if (conditions.length > 0) {
+        qb.andWhere(conditions.join(' AND '));
+    }
+
+    const [requests, total] = await qb.getManyAndCount();
 
     const pageInfo = createPageInfo(current, limit, total);
 
@@ -211,7 +221,7 @@ export const getRequestById = async (
             RequestId: request.ID,
             SupplierId: supplierID,
         },
-        select: ['IsConfirmed'],
+        select: ['IsConfirmed', 'confirmAt'],
     });
 
     const isDisable = isExpired || Boolean(requestConfirm?.IsConfirmed && !isExpired);
@@ -243,6 +253,7 @@ export const getRequestById = async (
 
     return {
         isDisable,
+        confirmAt: requestConfirm?.confirmAt,
         data: requestItemList,
         files: sanitizeFileData(files),
     };
@@ -253,13 +264,7 @@ export const getChartRequestList = async (supplierID: number): Promise<IChartDat
         throw throwResponse(EStatusCodes.BAD_REQUEST, 'Supplier ID is required and must be valid');
     }
 
-    const repo = getRequestRepo();
-
     const confirmRepo = getConfirmRepo();
-    const confirmsTotal = await confirmRepo.count({
-        where: { SupplierId: supplierID, IsConfirmed: Boolean(1) },
-    });
-
     const unConfirmTotal = await confirmRepo.count({
         where: {
             SupplierId: supplierID,
@@ -267,18 +272,48 @@ export const getChartRequestList = async (supplierID: number): Promise<IChartDat
         },
     });
 
-    const requestTotal = await repo.count();
+    const isApproved = await confirmRepo.count({
+        where: {
+            SupplierId: supplierID,
+            ApprovalStatus: EApproveStatus.APPROVED,
+        },
+    });
+
+    const isPending = await confirmRepo.count({
+        where: {
+            SupplierId: supplierID,
+            ApprovalStatus: EApproveStatus.PENDING,
+        },
+    });
+
+    const isRejected = await confirmRepo.count({
+        where: {
+            SupplierId: supplierID,
+            ApprovalStatus: EApproveStatus.REJECTED,
+        },
+    });
 
     return [
         {
             name: 'Chưa gửi',
-            value: requestTotal - confirmsTotal + unConfirmTotal,
+            value: unConfirmTotal,
             color: 'gray',
         },
+
         {
-            name: 'Đã gửi',
-            value: confirmsTotal,
+            name: 'Đã được phê duyệt',
+            value: isApproved,
             color: 'green',
+        },
+        {
+            name: 'Đang chờ duyệt',
+            value: isPending,
+            color: 'orange',
+        },
+        {
+            name: 'Bị từ chối',
+            value: isRejected,
+            color: 'red',
         },
     ];
 };

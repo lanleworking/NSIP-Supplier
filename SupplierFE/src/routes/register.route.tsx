@@ -1,3 +1,4 @@
+import { LazyComponent } from '@/components/LazyComponent'
 import { Register } from '@/pages/auth/Register'
 import { createFileRoute } from '@tanstack/react-router'
 
@@ -6,5 +7,9 @@ export const Route = createFileRoute('/register')({
 })
 
 function RouteComponent() {
-  return <Register />
+  return (
+    <LazyComponent>
+      <Register />
+    </LazyComponent>
+  )
 }

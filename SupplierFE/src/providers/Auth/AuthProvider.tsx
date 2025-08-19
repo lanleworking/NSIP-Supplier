@@ -1,6 +1,6 @@
+import { Loading } from '@/components/Loading'
 import axiosClient from '@/config/axios'
 import { PUBLIC_ROUTES } from '@/constants/routers'
-import Loading from '@/layouts/Loading/Loading'
 import { AuthContext } from '@/providers/Auth/AuthContext'
 import { useNavigate, useRouter } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'

@@ -32,13 +32,14 @@ import { Skeleton } from 'antd'
 import useConfirm from '@/hooks/query/useConfirm'
 import { fetchErrorRes } from '@/utils/fetch'
 import toast from 'react-hot-toast'
+import dayjs from 'dayjs'
 
 type RequestItemProps = {
   paymentList: IPayment[]
 }
 
 function RequestItem({ paymentList }: RequestItemProps) {
-  const navigate = useNavigate()
+  const navigate = useNavigate({ from: '/request/$requestId' })
   const [selectedRequestItem, setSelectedRequestItem] =
     useState<IRequestItem | null>(null)
   const [openedEditModal, { open: openEditModal, close: closeEditModal }] =
@@ -141,23 +142,40 @@ function RequestItem({ paymentList }: RequestItemProps) {
   return (
     <>
       <Stack m={{ base: 12, sm: 32 }}>
-        <Flex gap={8} align={'center'} style={{ flex: 1 }}>
-          <ActionIcon
-            onClick={() => {
-              navigate({
-                to: '..',
-              })
-            }}
-            title="Quay lại"
-            variant="subtle"
-          >
-            <FaArrowLeft />
-          </ActionIcon>
-          <Title order={2}>Danh sách hàng hóa</Title>
+        <Flex
+          justify={'space-between'}
+          direction={{ base: 'column', sm: 'row' }}
+        >
+          <Flex gap={8} align={'center'} style={{ flex: 1 }}>
+            <ActionIcon
+              onClick={() => {
+                navigate({
+                  to: '..',
+                })
+              }}
+              title="Quay lại"
+              variant="subtle"
+            >
+              <FaArrowLeft />
+            </ActionIcon>
+            <Title order={2}>Danh sách hàng hóa</Title>
+          </Flex>
+          {requestItemData?.confirmAt && (
+            <Stack gap={'xs'} pl={{ base: 36 }} mt={{ base: 8 }}>
+              <Text size="sm" c={'dimmed'}>
+                Đơn hàng đã được xác nhận
+              </Text>
+              <Text size="sm" c={'dimmed'}>
+                {dayjs(requestItemData?.confirmAt).format(
+                  'HH:mm:ss DD/MM/YYYY',
+                )}
+              </Text>
+            </Stack>
+          )}
         </Flex>
         {/* filters */}
         <Grid>
-          <Grid.Col span={4}>
+          <Grid.Col span={{ base: 12, sm: 4 }}>
             <TextInput
               leftSection={<IoIosSearch />}
               placeholder="Tìm kiếm tên"

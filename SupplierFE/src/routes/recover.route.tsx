@@ -1,3 +1,4 @@
+import { LazyComponent } from '@/components/LazyComponent'
 import { ForgotPassword } from '@/pages/auth/ForgotPassword'
 import { createFileRoute } from '@tanstack/react-router'
 
@@ -6,5 +7,9 @@ export const Route = createFileRoute('/recover')({
 })
 
 function RouteComponent() {
-  return <ForgotPassword />
+  return (
+    <LazyComponent>
+      <ForgotPassword />
+    </LazyComponent>
+  )
 }
