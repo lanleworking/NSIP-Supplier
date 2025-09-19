@@ -1,4 +1,3 @@
-import { LazyComponent } from '@/components/LazyComponent'
 import { SupplierInformationEdit } from '@/pages/main/SupplierInformationEdit'
 import { createFileRoute } from '@tanstack/react-router'
 
@@ -7,9 +6,5 @@ export const Route = createFileRoute('/supplier/edit/')({
 })
 
 function RouteComponent() {
-  return (
-    <LazyComponent>
-      <SupplierInformationEdit />
-    </LazyComponent>
-  )
+  return <SupplierInformationEdit />
 }

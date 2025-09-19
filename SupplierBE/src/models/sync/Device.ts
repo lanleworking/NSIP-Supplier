@@ -8,7 +8,7 @@ export class Device {
     Id!: number;
 
     @Column({
-        type: 'varchar',
+        type: 'nvarchar',
         length: 100,
         nullable: true,
     })
