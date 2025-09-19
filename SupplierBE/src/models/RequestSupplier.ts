@@ -1,9 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Request } from '../default/Request';
-import { Request_List } from '../default/Request_List';
+import { Request_List } from './Request_List';
 
-@Entity('Request_Confirm')
-export class RequestConfirm {
+@Entity('Request_Supplier')
+export class RequestSupplier {
     @PrimaryGeneratedColumn()
     ID!: number;
 
@@ -43,10 +42,10 @@ export class RequestConfirm {
     })
     confirmAt?: Date;
 
-    @ManyToOne(() => Request_List, (request) => request.RequestConfirms)
+    @ManyToOne(() => Request_List, (request) => request.RequestSuppliers)
     @JoinColumn({
         name: 'RequestId',
-        referencedColumnName: 'ID',
+        referencedColumnName: 'Id_Request',
     })
     request?: Request;
 }

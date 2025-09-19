@@ -1,9 +1,8 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Supplier')
 export class Supplier {
-    @Column({
-        primary: true,
+    @PrimaryColumn({
         type: 'bigint',
     })
     SupplierID!: number;

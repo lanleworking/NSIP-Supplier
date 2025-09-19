@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Request_List } from './Request_List';
 
 @Entity('Request_File')
 export class RequestFile {
@@ -30,4 +31,8 @@ export class RequestFile {
         nullable: true,
     })
     fileName?: string;
+
+    @ManyToOne(() => Request_List, (requestList) => requestList.requestFiles)
+    @JoinColumn({ name: 'requestID', referencedColumnName: 'Id_Request' })
+    requestList?: Promise<Request_List>;
 }

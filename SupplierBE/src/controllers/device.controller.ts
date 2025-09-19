@@ -1,5 +1,5 @@
 import { EStatusCodes } from '../interfaces/http';
-import { Device } from '../models/sync/Device';
+import { Device } from '../models/Device';
 import { AppDataSourceGlobal } from '../sql/config';
 import { throwResponse } from '../utils/response';
 
@@ -16,6 +16,9 @@ export const insertDevice = async (payload: {
     if (!envPass) throw throwResponse(EStatusCodes.INTERNAL_SERVER_ERROR, 'Device insert pass not set');
     if (payload.pass !== envPass) throw throwResponse(EStatusCodes.UNAUTHORIZED, 'Unauthorized');
 
+    if (!AppDataSourceGlobal.isInitialized) {
+        await AppDataSourceGlobal.initialize();
+    }
     const deviceRepo = AppDataSourceGlobal.getRepository(Device);
 
     const existingDevice = await deviceRepo.findOneBy({

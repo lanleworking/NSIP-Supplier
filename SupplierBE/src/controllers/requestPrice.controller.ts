@@ -1,9 +1,14 @@
 import { EStatusCodes } from '../interfaces/http';
+import { RequestItemPrice } from '../models/RequestItemPrice';
 import { AppDataSourceGlobal } from '../sql/config';
 import { throwResponse } from '../utils/response';
-import { RequestItemPrice } from '../models/sync/RequestItemPrice';
 
-const requestItemPriceRepo = AppDataSourceGlobal.getRepository(RequestItemPrice);
+const getRequestItemPriceRepo = async () => {
+    if (!AppDataSourceGlobal.isInitialized) {
+        await AppDataSourceGlobal.initialize();
+    }
+    return AppDataSourceGlobal.getRepository(RequestItemPrice);
+};
 
 export const updateRequestItemPrice = async (
     requestId: number,
@@ -13,7 +18,8 @@ export const updateRequestItemPrice = async (
     if (!requestId) throw throwResponse(EStatusCodes.BAD_REQUEST, 'ID yêu cầu không được để trống');
     if (!supplierID) throw throwResponse(EStatusCodes.BAD_REQUEST, 'ID nhà cung cấp không được để trống');
 
-    const existingRecord = await AppDataSourceGlobal.getRepository(RequestItemPrice).findOne({
+    const requestItemPriceRepo = await getRequestItemPriceRepo();
+    const existingRecord = await requestItemPriceRepo.findOne({
         where: {
             RequestItemId: requestId,
             SupplierID: supplierID,

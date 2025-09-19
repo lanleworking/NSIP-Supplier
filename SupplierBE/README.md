@@ -151,7 +151,7 @@ FRONTEND_URL=http://localhost:3000
 -   **Supplier**: Supplier information and credentials
 -   **Request_List**: Procurement request headers
 -   **Request**: Individual items within requests
--   **RequestConfirm**: Supplier confirmation status
+-   **RequestSupplier**: Supplier confirmation status
 -   **RequestItemPrice**: Pricing submissions by suppliers
 -   **RequestFile**: File attachments for requests
 -   **Payment**: Payment method definitions
@@ -273,7 +273,7 @@ src/
 │   │   └── Request_List.ts      # Request headers
 │   └── sync/             # Synchronized entities
 │       ├── Supplier.ts          # Supplier information
-│       ├── RequestConfirm.ts    # Confirmation records
+│       ├── RequestSupplier.ts    # Confirmation records
 │       ├── RequestItemPrice.ts  # Pricing data
 │       ├── RequestFile.ts       # File attachments
 │       └── Payment.ts           # Payment methods

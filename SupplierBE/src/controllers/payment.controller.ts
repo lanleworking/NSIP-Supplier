@@ -5,9 +5,14 @@ import { IPaymentPayload } from '../interfaces/payload';
 import { AppDataSourceGlobal } from '../sql/config';
 import { throwResponse } from '../utils/response';
 import { validateFields } from '../utils/validate';
-import { Payment } from '../models/sync/Payment';
+import { Payment } from '../models/Payment';
 
-const paymentRepo = AppDataSourceGlobal.getRepository(Payment);
+const getPaymentRepo = async () => {
+    if (!AppDataSourceGlobal.isInitialized) {
+        await AppDataSourceGlobal.initialize();
+    }
+    return AppDataSourceGlobal.getRepository(Payment);
+};
 
 export const createNewPayment = async (payload: IPaymentPayload | IPaymentPayload[]) => {
     const payments = Array.isArray(payload) ? payload : [payload];
@@ -29,6 +34,7 @@ export const createNewPayment = async (payload: IPaymentPayload | IPaymentPayloa
     }
 
     // check for existing in DB
+    const paymentRepo = await getPaymentRepo();
     const existing = await paymentRepo.find({
         where: { PaymentID: In(ids) },
     });
@@ -55,6 +61,7 @@ export const removePayment = async (paymentId: string | string[]) => {
     if (!paymentId) throw throwResponse(EStatusCodes.BAD_REQUEST, 'ID thanh toán không được để trống');
     const payments = Array.isArray(paymentId) ? paymentId : [paymentId];
 
+    const paymentRepo = await getPaymentRepo();
     const result = await paymentRepo.delete(payments);
     if (result.affected === 0) throw throwResponse(EStatusCodes.NOT_FOUND, 'Thanh toán không tồn tại');
 
@@ -68,6 +75,7 @@ export const removePayment = async (paymentId: string | string[]) => {
  * @returns A success message indicating that all payments have been removed.
  */
 export const removeAllPayments = async () => {
+    const paymentRepo = await getPaymentRepo();
     await paymentRepo.clear();
 
     return { message: 'Tất cả thanh toán đã được xóa thành công' };
@@ -81,11 +89,13 @@ export const removeAllPayments = async () => {
  * @throws {Error} If no payments are found.
  */
 export const getAllPayments = async () => {
+    const paymentRepo = await getPaymentRepo();
     const payments = await paymentRepo.find();
     return payments;
 };
 
 export const getAllPaymentsOptions = async () => {
+    const paymentRepo = await getPaymentRepo();
     const payments = await paymentRepo.find();
     const options = payments.map((p) => ({
         label: p.PaymentName,

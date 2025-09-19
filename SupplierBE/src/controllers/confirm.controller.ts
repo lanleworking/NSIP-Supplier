@@ -1,39 +1,48 @@
 import dayjs from 'dayjs';
 import { EStatusCodes } from '../interfaces/http';
-import { Request_List } from '../models/default/Request_List';
-import { RequestConfirm } from '../models/sync/RequestConfirm';
-import { Supplier } from '../models/sync/Supplier';
+import { Request_List } from '../models/Request_List';
 import { sendConfirmMail } from '../services/mailer.service';
 import { AppDataSourceGlobal } from '../sql/config';
 import { throwResponse } from '../utils/response';
 import type { Repository } from 'typeorm';
 import { EApproveStatus } from '../interfaces/data';
+import { RequestSupplier } from '../models/RequestSupplier';
+import { Supplier } from '../models/Supplier';
 
 interface ConfirmRequestResponse {
     message: string;
-    data: RequestConfirm;
+    data: RequestSupplier;
 }
 
-let confirmRepo: Repository<RequestConfirm> | null = null;
+let confirmRepo: Repository<RequestSupplier> | null = null;
 let requestRepo: Repository<Request_List> | null = null;
 let supplierRepo: Repository<Supplier> | null = null;
 
-const getConfirmRepo = (): Repository<RequestConfirm> => {
+const getConfirmRepo = async (): Promise<Repository<RequestSupplier>> => {
     if (!confirmRepo) {
-        confirmRepo = AppDataSourceGlobal.getRepository(RequestConfirm);
+        if (!AppDataSourceGlobal.isInitialized) {
+            await AppDataSourceGlobal.initialize();
+        }
+        confirmRepo = AppDataSourceGlobal.getRepository(RequestSupplier);
     }
     return confirmRepo;
 };
 
-const getRequestRepo = (): Repository<Request_List> => {
+const getRequestRepo = async (): Promise<Repository<Request_List>> => {
     if (!requestRepo) {
+        if (!AppDataSourceGlobal.isInitialized) {
+            await AppDataSourceGlobal.initialize();
+        }
         requestRepo = AppDataSourceGlobal.getRepository(Request_List);
     }
     return requestRepo;
 };
 
-const getSupplierRepo = (): Repository<Supplier> => {
+const getSupplierRepo = async (): Promise<Repository<Supplier>> => {
     if (!supplierRepo) {
+        if (!AppDataSourceGlobal.isInitialized) {
+            await AppDataSourceGlobal.initialize();
+        }
         supplierRepo = AppDataSourceGlobal.getRepository(Supplier);
     }
     return supplierRepo;
@@ -52,27 +61,27 @@ export const confirmRequest = async (requestId: number, supplierId: number): Pro
         throw throwResponse(EStatusCodes.BAD_REQUEST, 'Dữ liệu không hợp lệ');
     }
 
-    const requestRepoInstance = getRequestRepo();
-    const confirmRepoInstance = getConfirmRepo();
-    const supplierRepoInstance = getSupplierRepo();
+    const requestRepoInstance = await getRequestRepo();
+    const confirmRepoInstance = await getConfirmRepo();
+    const supplierRepoInstance = await getSupplierRepo();
 
     const request = await requestRepoInstance.findOne({
         where: { Id_Request: requestId },
-        select: ['ID', 'TimeLimit'], // Only select needed fields
+        select: ['Id_Request', 'TimeLimit'], // Only select needed fields
     });
 
     if (!request) {
         throw throwResponse(EStatusCodes.NOT_FOUND, 'Yêu cầu không tồn tại');
     }
 
-    if (isRequestExpired(request.TimeLimit)) {
+    if (request.TimeLimit && isRequestExpired(request.TimeLimit)) {
         throw throwResponse(EStatusCodes.BAD_REQUEST, 'Yêu cầu đã hết hạn');
     }
 
     const [existingConfirm, supplier] = await Promise.all([
         confirmRepoInstance.findOne({
             where: {
-                RequestId: request.ID,
+                RequestId: request.Id_Request,
                 SupplierId: supplierId,
             },
             select: ['ID', 'IsConfirmed', 'confirmAt'],
@@ -91,8 +100,8 @@ export const confirmRequest = async (requestId: number, supplierId: number): Pro
         throw throwResponse(EStatusCodes.NOT_FOUND, 'Nhà cung cấp không tồn tại');
     }
 
-    const confirmationData: Partial<RequestConfirm> = {
-        RequestId: request.ID,
+    const confirmationData: Partial<RequestSupplier> = {
+        RequestId: request.Id_Request,
         SupplierId: supplierId,
         IsConfirmed: true,
         ApprovalStatus: EApproveStatus.PENDING,

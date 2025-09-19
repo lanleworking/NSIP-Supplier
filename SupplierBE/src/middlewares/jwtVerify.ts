@@ -1,5 +1,5 @@
 import { EStatusCodes } from '../interfaces/http';
-import { Supplier } from '../models/sync/Supplier';
+import { Supplier } from '../models/Supplier';
 import { AppDataSourceGlobal } from '../sql/config';
 import type { Repository } from 'typeorm';
 
@@ -26,8 +26,11 @@ const SUPPLIER_INACTIVE_ERROR = Object.freeze({
     CODE: 'SUPPLIER_INACTIVE',
 });
 
-const getSupplierRepo = (): Repository<Supplier> => {
+const getSupplierRepo = async (): Promise<Repository<Supplier>> => {
     if (!supplierRepo) {
+        if (!AppDataSourceGlobal.isInitialized) {
+            await AppDataSourceGlobal.initialize();
+        }
         supplierRepo = AppDataSourceGlobal.getRepository(Supplier);
     }
     return supplierRepo;
@@ -63,7 +66,7 @@ const jwtVerify = async (token: JWTToken, jwt: any, set: any): Promise<JWTPayloa
         throw UNAUTHORIZED_ERROR;
     }
 
-    const repo = getSupplierRepo();
+    const repo = await getSupplierRepo();
     const supplier = await repo.findOne({
         where: { SupplierID: user.supplierID },
         select: ['IsActive'],

@@ -1,5 +1,5 @@
 import { EStatusCodes } from '../interfaces/http';
-import { RequestFile } from '../models/sync/RequestFile';
+import { RequestFile } from '../models/RequestFile';
 import { AppDataSourceGlobal } from '../sql/config';
 import { throwResponse } from '../utils/response';
 import { saveFilesToLocal } from '../utils/saveFileToLocal';
@@ -19,8 +19,11 @@ interface FileOperationResponse {
 
 let fileRepo: Repository<RequestFile> | null = null;
 
-const getFileRepo = (): Repository<RequestFile> => {
+const getFileRepo = async (): Promise<Repository<RequestFile>> => {
     if (!fileRepo) {
+        if (!AppDataSourceGlobal.isInitialized) {
+            await AppDataSourceGlobal.initialize();
+        }
         fileRepo = AppDataSourceGlobal.getRepository(RequestFile);
     }
     return fileRepo;
@@ -62,7 +65,7 @@ export const uploadFile = async (payload: UploadFilePayload): Promise<FileOperat
     }
 
     const { files, supplierId, requestId, removeFileIds } = payload;
-    const repo = getFileRepo();
+    const repo = await getFileRepo();
 
     const totalFiles = await repo.count({
         where: { requestID: requestId, SupplierID: supplierId },
@@ -93,7 +96,7 @@ export const removeFile = async (fileId: number): Promise<FileOperationResponse>
         throw throwResponse(EStatusCodes.BAD_REQUEST, 'File ID lỗi');
     }
 
-    const repo = getFileRepo();
+    const repo = await getFileRepo();
 
     const file = await repo.findOne({
         where: { ID: fileId },

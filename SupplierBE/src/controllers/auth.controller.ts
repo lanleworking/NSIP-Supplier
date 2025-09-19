@@ -7,10 +7,10 @@ import { validateFields } from '../utils/validate';
 import { Cookie } from 'elysia';
 import { registerSchema } from '../constants/validate/auth';
 import { nextDayMidnight } from '../utils/date';
-import { Supplier } from '../models/sync/Supplier';
 import { AppDataSourceGlobal } from '../sql/config';
 import { sendResetPassMail } from '../services/mailer.service';
 import type { Repository } from 'typeorm';
+import { Supplier } from '../models/Supplier';
 
 interface JWTService {
     sign(payload: any): Promise<string>;
@@ -27,8 +27,30 @@ let supplierRepo: Repository<Supplier> | null = null;
 const TOKEN_EXPIRY_SECONDS = 60 * 60 * 24; // 1 day
 const RESET_TOKEN_EXPIRY_MS = 300000; // 5 minutes
 
-const getSupplierRepo = (): Repository<Supplier> => {
+const getSupplierRepo = async (): Promise<Repository<Supplier>> => {
     if (!supplierRepo) {
+        // Ensure DataSource is initialized
+        if (!AppDataSourceGlobal.isInitialized) {
+            try {
+                await AppDataSourceGlobal.initialize();
+                console.log('✅ | DataSource initialized in auth controller');
+            } catch (error) {
+                console.error('❌ | Failed to initialize DataSource:', error);
+                throw new Error('Database connection failed');
+            }
+        }
+
+        // Verify Supplier entity metadata exists
+        try {
+            const metadata = AppDataSourceGlobal.getMetadata(Supplier);
+            if (!metadata) {
+                throw new Error('Supplier entity metadata not found');
+            }
+        } catch (error) {
+            console.error('Error getting Supplier metadata:', error);
+            throw new Error('Supplier entity metadata not found');
+        }
+
         supplierRepo = AppDataSourceGlobal.getRepository(Supplier);
     }
     return supplierRepo;
@@ -57,7 +79,7 @@ const sanitizeSupplierData = (supplier: Supplier) => {
     return restData;
 };
 
-const isProd = process.env.CODE_ENV === 'PRODUCTION';
+const isProd = process.env.CODE_ENV !== 'DEV';
 const setTokenCookie = (set: any, token: string, maxAge: number) => {
     const sameSite = isProd ? 'None' : 'Lax';
     const secure = isProd ? 'Secure;' : '';
@@ -72,7 +94,7 @@ export const login = async (payload: ILoginPayload, set: any, jwt: JWTService) =
 
     const { LoginName, SupplierPass } = payload;
     const hashedPassword = encodeString(SupplierPass);
-    const repo = getSupplierRepo();
+    const repo = await getSupplierRepo();
 
     const whereConditions = createLoginWhereConditions(LoginName, hashedPassword);
 
@@ -129,7 +151,7 @@ export const register = async (payload: IRegisterPayload, set: any, jwt: JWTServ
     if (error) throw throwResponse(EStatusCodes.BAD_REQUEST, error);
 
     const { LoginName, SupplierPass, CompanyName, RepresentativeName, PhoneNumber, Email } = payload;
-    const repo = getSupplierRepo();
+    const repo = await getSupplierRepo();
 
     const existingSupplier = await repo.findOne({
         where: { LoginName },
@@ -182,7 +204,7 @@ export const getLoggedUser = async (jwt: JWTService, set: any, token: Cookie<str
         throw throwResponse(EStatusCodes.UNAUTHORIZED, '2.Phiên đăng nhập không hợp lệ');
     }
 
-    const repo = getSupplierRepo();
+    const repo = await getSupplierRepo();
     const supplier = await repo.findOne({
         where: { SupplierID: decoded.supplierID },
         select: [
@@ -220,7 +242,7 @@ export const logOut = (set: any) => {
 export const resetPassword = async (LoginName: string, headers: Record<string, string | undefined>) => {
     if (!LoginName) throw throwResponse(EStatusCodes.BAD_REQUEST, 'Tên đăng nhập không được để trống');
 
-    const repo = getSupplierRepo();
+    const repo = await getSupplierRepo();
     const loginAsNumber = Number(LoginName);
 
     const whereConditions: any[] = [
@@ -272,7 +294,7 @@ export const resetPasswordWithToken = async (token: string, newPassword: string)
         throw throwResponse(EStatusCodes.UNAUTHORIZED, 'Yêu cầu không hợp lệ');
     }
 
-    const repo = getSupplierRepo();
+    const repo = await getSupplierRepo();
     const supplier = await repo.findOne({
         where: { Email: decoded.email },
         select: ['SupplierID', 'SupplierPass'],
@@ -295,7 +317,7 @@ export const updateSupplier = async (supplierID: number, updateData: Partial<Sup
         throw throwResponse(EStatusCodes.BAD_REQUEST, 'Lỗi thông tin');
     }
 
-    const repo = getSupplierRepo();
+    const repo = await getSupplierRepo();
     const supplier = await repo.findOne({
         where: { SupplierID: supplierID },
     });
@@ -318,7 +340,7 @@ export const updateSupplierPassword = async (supplierID: number, payload: { oldP
     }
 
     const { oldPass, newPass } = payload;
-    const repo = getSupplierRepo();
+    const repo = await getSupplierRepo();
     const supplier = await repo.findOne({
         where: { SupplierID: supplierID },
         select: ['SupplierID', 'SupplierPass'],

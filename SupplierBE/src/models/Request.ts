@@ -1,5 +1,6 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { RequestItemPrice } from '../sync/RequestItemPrice';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { RequestItemPrice } from './RequestItemPrice';
+import { Request_List } from './Request_List';
 
 @Entity('Request')
 export class Request {
@@ -65,6 +66,10 @@ export class Request {
         nullable: true,
     })
     Note?: string;
+
+    @ManyToOne(() => Request_List, (requestList) => requestList.requests)
+    @JoinColumn({ name: 'Id_Request', referencedColumnName: 'Id_Request' })
+    requestList?: Promise<Request_List>;
 
     @OneToMany(() => RequestItemPrice, (requestItemPrice) => requestItemPrice.requestItem)
     prices?: RequestItemPrice[];

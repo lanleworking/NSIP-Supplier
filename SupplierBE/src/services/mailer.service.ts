@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { Supplier } from '../models/sync/Supplier';
+import { Supplier } from '../models/Supplier';
 import { loadEmailTemplate } from '../utils/mail';
 
 const transporter = nodemailer.createTransport({

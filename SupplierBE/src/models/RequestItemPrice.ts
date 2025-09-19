@@ -1,7 +1,5 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Supplier } from './Supplier';
-import { Request } from '../default/Request';
-import { Payment } from './Payment';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Request } from './Request';
 
 @Entity('Request_Item_Price')
 export class RequestItemPrice {
