@@ -22,3 +22,12 @@ export const normalizeString = (str: string): string => {
     .replace(/\s+/g, ' ')
     .toLowerCase()
 }
+
+export const maskString = (text: string | null) => {
+  if (!text || text.length <= 6) return text
+  const first3 = text.substring(0, 3)
+  const last3 = text.substring(text.length - 3)
+  const maskLength = text.length - 6
+  const mask = '*'.repeat(Math.max(maskLength, 3))
+  return `${first3}${mask}${last3}`
+}

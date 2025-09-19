@@ -20,6 +20,7 @@ import { Link } from '@tanstack/react-router'
 import { isEmpty } from 'lodash'
 
 import { MdOutlineMarkEmailRead } from 'react-icons/md'
+import { maskString } from '@/utils/string'
 
 function ForgotPassword() {
   const [mailRecover, setMailRecover] = useState(null)
@@ -90,7 +91,7 @@ function ForgotPassword() {
         <Center>
           <Stack ta={'center'}>
             <Text>Yêu cầu đặt lại mật khẩu đã được gửi đến mail của bạn</Text>
-            <Text fw={'bold'}>{mailRecover}</Text>
+            <Text fw={'bold'}>{maskString(mailRecover)}</Text>
             <Center>
               <MdOutlineMarkEmailRead color="#096fce" size={80} />
             </Center>
